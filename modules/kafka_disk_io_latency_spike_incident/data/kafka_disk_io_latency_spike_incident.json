@@ -1,0 +1,142 @@
+{
+  "name": "kafka_disk_io_latency_spike_incident",
+  "description": "This incident type refers to a sudden increase in disk input/output (I/O) latency in the Kafka message broker, which can lead to degraded performance, slow processing of messages, and potentially impact system availability. This may be caused by a variety of factors, such as hardware failure, network issues, or software bugs. It is important to quickly identify and resolve this issue to prevent disruption to the system and ensure smooth operation of the Kafka message broker.",
+  "params": [
+    {
+      "name": "AMOUNT_OF_TIME_TO_RETAIN_MESSAGES_IN_MILLISECONDS",
+      "value": ""
+    },
+    {
+      "name": "DISK_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAME_OF_KAFKA_TOPIC_TO_CLEAN_UP",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_KAFKA_LOGS",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_KAFKA_HOME_DIRECTORY",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Kafka Disk IO Latency Spike Incident\nThis incident type refers to a sudden increase in disk input/output (I/O) latency in the Kafka message broker, which can lead to degraded performance, slow processing of messages, and potentially impact system availability. This may be caused by a variety of factors, such as hardware failure, network issues, or software bugs. It is important to quickly identify and resolve this issue to prevent disruption to the system and ensure smooth operation of the Kafka message broker."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the current CPU usage"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `top`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if Kafka is running"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `systemctl status kafka`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the current disk usage"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `df -h`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the disk I/O utilization"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `iostat -x ${DISK_NAME}`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the disk I/O wait time"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `iostat -x ${DISK_NAME} | grep -E 'avgqu-sz|await'`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the current network usage"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `nload`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Kafka logs for any errors or warnings"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -f ${PATH_TO_KAFKA_LOGS}`"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Implement data retention policies to limit the amount of data stored on the Kafka brokers, and periodically archive or delete older data to free up disk space and improve disk I/O performance."
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_kafka_topic_cleanup($AMOUNT_OF_TIME_TO_RETAIN_MESSAGES_IN_MILLISECONDS, $NAME_OF_KAFKA_TOPIC_TO_CLEAN_UP, $PATH_TO_KAFKA_HOME_DIRECTORY)"
+    }
+  ]
+}
